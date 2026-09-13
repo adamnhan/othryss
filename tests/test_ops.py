@@ -220,7 +220,9 @@ class BackupTests(unittest.TestCase):
 class SupervisorTests(unittest.TestCase):
     def test_failed_automatic_backup_retries_without_restarting_supervisor(self):
         with tempfile.TemporaryDirectory() as temp:
-            root=Path(temp);directory=root/"artifacts/ops";directory.mkdir(parents=True)
+            # Hosted Windows runners can expose TEMP through an 8.3 alias.
+            # The supervisor resolves its root, so compare the same canonical path.
+            root=Path(temp).resolve();directory=root/"artifacts/ops";directory.mkdir(parents=True)
             previous={"status":"complete","path":"previous-bundle","finished_at":"2020-01-01T00:00:00+00:00"}
             statefile=directory/"status.json"
             statefile.write_text(json.dumps({"backup":previous}))
@@ -230,7 +232,7 @@ import sys,sqlite3
 from othryss import ops
 root=Path(sys.argv[1])
 clock=ops.time.monotonic
-ops.time.monotonic=lambda:clock()*100
+ops.time.monotonic=lambda:clock()+(301 if (root/'advance-clock').exists() else 0)
 ops.commands=lambda *_:{}
 ops.backup_sources_ready=lambda *_:True
 ops.reclaim=lambda *_:{}
@@ -255,7 +257,8 @@ ops.run(root)
                 self.assertEqual(failed["sqlite_error"],"SQLITE_BUSY")
                 self.assertEqual(failed["last_success"]["path"],"previous-bundle")
                 self.assertNotIn("SECRET-CANARY",json.dumps(failed))
-                until(lambda:json.loads(statefile.read_text()).get("backup",{}).get("path")==str(root/"completed-bundle"),12)
+                (root/"advance-clock").touch()
+                until(lambda:json.loads(statefile.read_text()).get("backup",{}).get("path")==str(root/"completed-bundle"),30)
                 self.assertEqual((root/"attempts").read_text(),"2")
                 self.assertEqual(json.loads(statefile.read_text())["backup"]["status"],"complete")
                 (directory/"STOP").touch();parent.wait(timeout=10)
