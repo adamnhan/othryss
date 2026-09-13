@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "routes": [
+    {
+      "id": "discord",
+      "kind": "discord",
+      "enabled": false,
+      "scope_id": "e96871285a94bdb226f51ec74ae0c2a890df9d483a9d9455668758674d5131b0",
+      "events": ["opened", "resolved"],
+      "rules": [],
+      "reminder_seconds": 0,
+      "max_attempts": 5,
+      "ttl_seconds": 3600,
+      "min_interval_seconds": 10,
+      "destination": {"url_env": "OTHRYSS_ALERT_DISCORD_URL"}
+    },
+    {
+      "id": "webhook",
+      "kind": "webhook",
+      "enabled": false,
+      "scope_id": "e96871285a94bdb226f51ec74ae0c2a890df9d483a9d9455668758674d5131b0",
+      "events": ["opened", "resolved"],
+      "rules": [],
+      "reminder_seconds": 0,
+      "max_attempts": 5,
+      "ttl_seconds": 3600,
+      "min_interval_seconds": 10,
+      "destination": {"url_env": "OTHRYSS_ALERT_WEBHOOK_URL", "signing_secret_env": "OTHRYSS_ALERT_WEBHOOK_SECRET"}
+    }
+  ]
+}

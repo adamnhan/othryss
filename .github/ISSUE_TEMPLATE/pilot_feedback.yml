@@ -1,0 +1,22 @@
+name: Pilot feedback
+description: Tell us what was useful, confusing, or missing.
+body:
+  - type: input
+    id: setup
+    attributes:
+      label: Setup
+      description: "Release, example or connected account, bot family if applicable. Exclude account identifiers."
+  - type: textarea
+    id: useful
+    attributes:
+      label: What was useful?
+  - type: textarea
+    id: confusing
+    attributes:
+      label: What was confusing or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: continued_use
+    attributes:
+      label: Would you keep using Othryss? Why?

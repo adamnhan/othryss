@@ -1,0 +1,8 @@
+{
+  "account": "my-account",
+  "environment": "demo",
+  "port": 8766,
+  "reconcile_ticker": null,
+  "backup_interval_seconds": 21600,
+  "backup_keep": 7
+}

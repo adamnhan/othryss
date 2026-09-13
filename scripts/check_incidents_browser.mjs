@@ -1,0 +1,48 @@
+import assert from "node:assert/strict";
+import {spawn,execFileSync} from "node:child_process";
+import {mkdir,readFile} from "node:fs/promises";
+import {setTimeout as delay} from "node:timers/promises";
+import {chromium} from "playwright";
+await mkdir("artifacts/browser",{recursive:true});
+const db=`artifacts/browser/incidents-test-${Date.now()}.sqlite`;
+const seed=JSON.parse(execFileSync("python",["scripts/seed_incident_browser.py","--db",db],{encoding:"utf8",windowsHide:true}));
+const base="http://127.0.0.1:8881";
+const server=spawn("python",["-m","othryss.server","--port","8881","--db",db],{windowsHide:true,stdio:"ignore"});
+let browser;
+try {
+  for(let i=0;i<50;i++){try{if((await fetch(base).then(async response => { await response.arrayBuffer(); return response; })).ok)break;}catch{} await delay(100);}
+  browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL??"msedge",headless:true});
+  const page=await browser.newPage({viewport:{width:1440,height:1050},acceptDownloads:true});
+  const errors=[]; page.on("pageerror",e=>errors.push(e.message));
+  await page.goto(`${base}#incidents`);
+  await page.locator("#history-account").selectOption(seed.scope);
+  await page.locator("[data-incident]").first().click();
+  await page.waitForFunction(()=>document.getElementById("incident-detail").textContent.includes("position mismatch"));
+  assert.equal(await page.locator("#incident-resolve").isDisabled(),true);
+  await page.locator("#incident-note").fill("Reviewed synthetic mismatch");
+  await page.locator("#incident-ack").click();
+  await page.waitForFunction(()=>document.getElementById("incident-ack")?.disabled);
+  assert.match(await page.locator("#incident-detail").textContent(),/acknowledged/);
+  assert.match(await page.locator("#incident-detail pre").textContent(),/Reviewed synthetic mismatch/);
+  const ready=page.waitForEvent("download"); await page.locator("#incident-export").click();
+  const download=await ready; await download.saveAs("artifacts/browser/incident-synthetic-export.json");
+  const exported=JSON.parse(await readFile("artifacts/browser/incident-synthetic-export.json","utf8"));
+  assert.equal(exported.incident.assessment,"difference");
+  assert.equal(exported.first_evidence.exchange.evidence.position,"1");
+  await page.screenshot({path:"artifacts/browser/incidents-synthetic.png",fullPage:true});
+  execFileSync("python",["scripts/seed_incident_browser.py","--db",db,"--clear"],{windowsHide:true});
+  await page.locator("#history-refresh").click();
+  await page.waitForFunction(()=>document.getElementById("incident-list").textContent.includes("Assessment: clear"));
+  await page.locator("[data-incident]").first().click();
+  await page.waitForFunction(()=>document.getElementById("incident-resolve")&&!document.getElementById("incident-resolve").disabled);
+  await page.locator("#incident-resolve").click();
+  await page.waitForFunction(()=>document.getElementById("incident-detail").textContent.includes("position mismatch · resolved"));
+  await page.locator("#incident-filter").selectOption("resolved");
+  assert.equal(await page.locator("[data-incident]").count(),1);
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.locator("#history-account").selectOption({index:1});
+  await page.waitForFunction(()=>document.getElementById("incident-detail").textContent==="");
+  assert.deepEqual(errors,[]);
+  console.log("Incident workflow passed: synthetic discrepancy, acknowledgement, immutable evidence/export, recovery-gated resolution, filtering, account isolation and mobile.");
+} finally {await browser?.close(); server.kill();}

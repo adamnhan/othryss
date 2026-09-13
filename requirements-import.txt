@@ -1,0 +1,2 @@
+# The local explorer and saved-data imports remain standard-library-only.
+cryptography>=43,<48

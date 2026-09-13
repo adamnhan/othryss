@@ -1,0 +1,20 @@
+{
+  "name": "othryss",
+  "version": "0.1.0-pilot.1",
+  "private": true,
+  "description": "Optional browser test tooling; the app runs with Python only",
+  "scripts": {
+    "start": "python -m othryss.server",
+    "test": "python -m unittest discover -s tests -v",
+    "test:browser": "node scripts/check_example_browser.mjs",
+    "test:alerts-browser": "node scripts/check_alerts_browser.mjs",
+    "test:account-risk-browser": "node scripts/check_account_risk_browser.mjs",
+    "test:execution-browser": "node scripts/check_execution_browser.mjs",
+    "test:order-detail-browser": "node scripts/check_order_detail_browser.mjs",
+    "test:incidents-browser": "node scripts/check_incidents_browser.mjs",
+    "test:markouts-browser": "node scripts/check_markouts_browser.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

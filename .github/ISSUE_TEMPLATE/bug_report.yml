@@ -1,0 +1,31 @@
+name: Bug report
+description: Report incorrect behavior using a reproducible example.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Use synthetic data. Never attach keys, local.env, alert configuration, or an installation folder. Report vulnerabilities privately using SECURITY.md."
+  - type: input
+    id: version
+    attributes:
+      label: Version and environment
+      placeholder: "Commit/release, Windows version, Python version"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional sanitized evidence
+      description: "Include local date/time and a reviewed onboarding report or screenshot if useful."

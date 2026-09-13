@@ -1,0 +1,5 @@
+# Versions exercised for this Windows pilot (Python 3.12.10).
+cryptography==46.0.7
+websockets==16.1
+cffi==2.0.0
+pycparser==3.0

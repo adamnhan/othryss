@@ -1,0 +1,22 @@
+name: Tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -r requirements-reference.txt
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/build_pilot.py
+      - run: python scripts/check_onboarding_fresh.py --package artifacts/releases/othryss-0.1.0-pilot.1.zip
