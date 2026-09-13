@@ -239,11 +239,15 @@ p=Publisher(sys.argv[1],account='test',environment='demo',ticker=sys.argv[2],run
 for i in range(20):
     p.emit('ORDER_INTENT', {'request_id':'b'*32,'operation':'submit','client_order_id':'same-client'})
 p.close()
+# close() deliberately limits bot shutdown waits. This collision test needs
+# the full spool, so wait for its background writer before exiting the child.
+p.thread.join(timeout=10)
+assert not p.thread.is_alive(), 'Synthetic spool writer did not finish'
 """
         processes = [subprocess.Popen([sys.executable, "-c", code, str(self.root / "spool"), f"MARKET-{i}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE) for i in range(3)]
         try:
             for process in processes:
-                stdout, stderr = process.communicate(timeout=15)
+                stdout, stderr = process.communicate(timeout=20)
                 self.assertEqual(process.returncode, 0, stderr.decode())
             data = self.imported()
             self.assertEqual(len(data["sessions"]), 3)
